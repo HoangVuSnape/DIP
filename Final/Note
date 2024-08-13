@@ -1,0 +1,154 @@
+https://docs.opencv.org/3.4/d4/d70/tutorial_hough_circle.html
+
+https://docs.opencv.org/3.4/d9/db0/tutorial_hough_lines.html
+
+# Large cv
+<!-- 
+if circles is not None:
+    circles = np.uint16(np.around(circles))
+    # Find the circle with the largest radius, assuming it is the no U-turn sign including the red border
+    largest_circle = max(circles[0, :], key=lambda c: c[2])
+    center = (largest_circle[0], largest_circle[1])
+    radius = largest_circle[2]
+
+    # Draw the outer circle (including the red border of the sign)
+    cv2.circle(img_rgb, center, radius, (0, 255, 0), 2)
+    # Draw the center of the circle
+    cv2.circle(img_rgb, center, 2, (0, 0, 255), 3)
+     -->
+# v1 Explain hough gradient
+<!-- 
+Các Tham Số của cv2.HoughCircles
+gray: Đây là ảnh xám (grayscale) đầu vào mà bạn muốn phát hiện các hình tròn.
+
+cv2.HOUGH_GRADIENT: Đây là phương pháp được sử dụng để phát hiện các hình tròn. cv2.HOUGH_GRADIENT là phương pháp phổ biến nhất để phát hiện hình tròn trong OpenCV.
+
+dp=1.2: Tỷ lệ ngược của độ phân giải của bộ đệm so với độ phân giải của ảnh. Giá trị 1 có nghĩa là bộ đệm có độ phân giải bằng với độ phân giải của ảnh đầu vào. Nếu dp lớn hơn 1, bộ đệm sẽ có độ phân giải thấp hơn, điều này giúp giảm nhiễu và tải tính toán. dp=1.2 có nghĩa là bộ đệm có độ phân giải gấp 1.2 lần độ phân giải của ảnh đầu vào.
+
+minDist=rows/8: Đây là khoảng cách tối thiểu giữa các tâm của các hình tròn được phát hiện. Ở đây, rows là số hàng của ảnh xám, tức là chiều cao của ảnh. Việc đặt minDist bằng rows/8 có nghĩa là hàm sẽ chỉ xem các hình tròn là khác nhau nếu các tâm của chúng cách nhau ít nhất là rows/8 pixel. Điều này giúp tránh việc phát hiện nhiều hình tròn quá gần nhau.
+
+param1=50: Tham số đầu tiên cho bộ dò cạnh Canny được sử dụng bởi thuật toán phát hiện hình tròn. Tham số này thường đặt ngưỡng cao cho việc phát hiện cạnh.
+
+param2=30: Ngưỡng bộ đệm để phát hiện tâm của các hình tròn. Giá trị thấp hơn có nghĩa là hàm sẽ phát hiện nhiều hình tròn hơn (bao gồm cả những hình tròn không chính xác), trong khi giá trị cao hơn làm cho việc phát hiện chính xác hơn (ít hình tròn nhưng chính xác hơn).
+
+minRadius=50: Bán kính nhỏ nhất của các hình tròn cần phát hiện. Các hình tròn nhỏ hơn giá trị này sẽ không được phát hiện.
+
+maxRadius=200: Bán kính lớn nhất của các hình tròn cần phát hiện. Các hình tròn lớn hơn giá trị này sẽ không được phát hiện. -->
+
+# v2 explain hough gradient alt
+<!-- 
+Các Tham Số của cv2.HoughCircles
+gray: Đây là ảnh xám (grayscale) đầu vào, mà bạn muốn phát hiện các hình tròn trong đó.
+
+cv2.HOUGH_GRADIENT_ALT: Đây là phương pháp thay thế để phát hiện hình tròn trong OpenCV. So với cv2.HOUGH_GRADIENT, phương pháp này có một số khác biệt về thuật toán và các tham số được sử dụng.
+
+1.2 (dp): Đây là tỷ lệ ngược của độ phân giải của bộ đệm (accumulator) so với độ phân giải của ảnh gốc. Giá trị này là một phần quan trọng trong việc điều chỉnh độ nhạy của quá trình phát hiện:
+
+Nếu dp = 1, bộ đệm có độ phân giải giống như ảnh đầu vào.
+Nếu dp > 1, bộ đệm sẽ có độ phân giải thấp hơn, dẫn đến việc giảm độ nhạy nhưng cũng giúp giảm nhiễu.
+Trong trường hợp này, dp = 1.2 có nghĩa là bộ đệm có độ phân giải bằng 1/1.2 (hoặc 5/6) so với ảnh gốc. Điều này giúp giảm tải tính toán và có thể bỏ qua những chi tiết quá nhỏ hoặc nhiễu.
+30 (minDist): Đây là khoảng cách tối thiểu giữa các tâm của các hình tròn được phát hiện. Tham số này giúp tránh việc phát hiện nhiều hình tròn chồng chéo lên nhau hoặc quá gần nhau, mà có thể chỉ là nhiễu hoặc các đặc điểm không quan trọng. Cụ thể, minDist = 30 nghĩa là các tâm của hình tròn phải cách nhau ít nhất 30 pixel.
+
+param1=200: Tham số đầu tiên cho bộ dò cạnh Canny (Canny edge detector). Tham số này xác định ngưỡng trên (high threshold) cho việc phát hiện cạnh:
+
+Giá trị cao hơn làm tăng khả năng bỏ qua các chi tiết nhỏ hoặc nhiễu trong ảnh.
+Ở đây, param1 = 200 có nghĩa là bộ dò cạnh sẽ chỉ nhận diện các cạnh có độ gradient cao.
+param2=0.85: Ngưỡng cho bộ đệm tích lũy (accumulator threshold) để xác định liệu một vòng tròn có được coi là thực sự tồn tại hay không. Giá trị này thường là tỷ lệ phần trăm số phiếu tích lũy yêu cầu trong bộ đệm để chấp nhận một vòng tròn:
+
+Giá trị thấp hơn sẽ làm cho hàm phát hiện nhiều hình tròn hơn, nhưng có thể bao gồm nhiều nhiễu.
+Giá trị cao hơn sẽ làm cho hàm chỉ phát hiện những hình tròn mà bộ đệm chắc chắn là đúng.
+Ở đây, param2 = 0.85 có nghĩa là chỉ những điểm trong bộ đệm có độ tin cậy từ 85% trở lên sẽ được coi là trung tâm của hình tròn.
+minRadius=30: Bán kính nhỏ nhất của các hình tròn mà hàm sẽ phát hiện. Các hình tròn nhỏ hơn giá trị này sẽ không được phát hiện. Ở đây, minRadius = 30 có nghĩa là hàm sẽ chỉ tìm kiếm và phát hiện các hình tròn có bán kính từ 30 pixel trở lên
+ -->
+
+- note:
+# version 1
+- Xuất hiện rất nhiều lỗi với 
+-   m2 : đang lỗi 2 hình
+-   m3 thì nó lỗi màu đỏ
+
+# version 2
+- m1, m5, m8, m10
+* m1 -- circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT_ALT,
+                            1.2, 30, param1=200,
+                            param2= 0.85, minRadius=30)
+
+* m5 --- rows = gray.shape[0]        # minDist
+        circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, dp=1.2, minDist= rows/8,
+                            param1=50, param2=40, minRadius=100, maxRadius=200)
+
+* m8 -- circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT_ALT,
+                            2, 30, param1 = 200,
+                            param2= 0.85, minRadius=30)
+
+* m10 --- rows = gray.shape[0]        # minDist
+        circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, dp=1.5, minDist= rows/8,
+                    param1=50, param2=60, minRadius=100, maxRadius=330)
+# error v2
+- m4, m8, m11 -c
+- m6 đang bị lệch fix lại. 
+7,11
+
+#---------------------
+# Xử lý 2 biển thay m11 thành m16 tại cái viền đỏ liền quá
+
+m2 - 218
+if (x,y) == (1706, 2560):
+        rows = gray.shape[0]  # minDist
+        circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, dp=1.2, minDist=rows/8,
+                                   param1=50, param2=40, minRadius=100, maxRadius=200)
+    elif (x,y) == (526, 800):
+        circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT_ALT,
+                            1.2, 60, param1=100,
+                            param2= 0.85, minRadius=10)    
+    
+    elif (x,y) == (903, 645):
+        circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT_ALT,
+                                   2, 30, param1=200,
+                                   param2=0.85, minRadius=30)
+    elif (x,y) == (1333, 2000):
+        rows = gray.shape[0]  # minDist
+        circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, dp=1.5, minDist=rows/8,
+                                   param1=50, param2=60, minRadius=100, maxRadius=330)
+    else:
+        circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT_ALT,
+                                   2, 30, param1=200,
+                                   param2=0.85, minRadius=10)
+-------------
+11 -15
+- 
+(188, 268)
+circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT_ALT,
+                            1.2, 10, param1=100,
+                            param2= 0.2, minRadius=20)
+
+(177, 285)
+circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT_ALT,
+                            1.5, 10, param1=150,
+                            param2= 0.2, minRadius=10)
+
+(532, 765)
+circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT_ALT,
+                            1.5, 10, param1=150,
+                            param2= 0.7, minRadius=50)
+
+(193, 261)
+gray = cv2.medianBlur(gray, 3)
+
+circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT_ALT,
+                            1.5, 10, param1=150,
+                            param2= 0.5, minRadius=22)
+
+(398, 600)
+circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT_ALT,
+                            1.5, 10, param1=150,
+                            param2= 0.4, minRadius=22)
+-----------------
+# Xử lý tiếp theo để ra các trường hợp 
+
+- Do diện tích là (xanh, trắng)
+- Mask den 
+- Cùng tọa độ x. Hoặc lệch ...
+- Đếm số lượng điểm
+- CHia biển ra làm 2 (trái phải) ít hay nhiều màu đen..
+        Áp dụng với cấm quẹo trái phải.
